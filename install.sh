@@ -138,8 +138,6 @@ if [[ "\${1:-}" == "--uninstall" ]]; then
     fi
     echo ""
     echo "Uninstall complete."
-    echo "You may also remove the PATH line added to your shell profile:"
-    echo '  export PATH="\$HOME/.local/bin:\$PATH"'
     echo ""
     exit 0
 fi
