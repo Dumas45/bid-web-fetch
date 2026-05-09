@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ── bid-web-fetch installer ────────────────────────────────────────────────────
-# Usage:  curl -fsSL https://raw.githubusercontent.com/dumas45/bid-web-fetch/main/install.sh | bash
+# Usage:  curl -fsSL https://github.com/Dumas45/bid-web-fetch/raw/refs/heads/master/install.sh | bash
 
 APP_NAME="bid-web-fetch"
 COMMAND="bid-fetch"
