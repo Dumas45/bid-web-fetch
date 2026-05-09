@@ -116,6 +116,17 @@ echo "[ok] npm packages installed"
 mkdir -p "$BIN_DIR"
 cat > "$BIN_DIR/$COMMAND" <<EOF
 #!/usr/bin/env bash
+# bid-fetch launcher - auto-updates before starting
+
+_VENV="$VENV_DIR"
+_APP="$APP_NAME"
+
+if command -v uv &>/dev/null; then
+    uv pip install --quiet --upgrade --python "\$_VENV/bin/python" \
+        --index-url "https://test.pypi.org/simple/" \
+        --extra-index-url "https://pypi.org/simple/" "\$_APP" 2>/dev/null || true
+fi
+
 exec "$VENV_DIR/bin/$COMMAND" "\$@"
 EOF
 chmod +x "$BIN_DIR/$COMMAND"
