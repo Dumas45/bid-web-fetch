@@ -12,6 +12,8 @@ PACKAGE_DIR = Path(__file__).parent
 NODE_MODULES = PACKAGE_DIR / "node_modules"
 MCP_BIN = NODE_MODULES / ".bin" / "mcp-fetch-server"
 
+APP_VERSION = '0.1.2'
+
 
 def ensure_npm_installed() -> None:
     if not MCP_BIN.exists():
@@ -42,7 +44,7 @@ def index():
                 content = asyncio.run(_fetch_txt(url))
             except Exception as exc:
                 error = str(exc)
-    return render_template("index.html", url=url, content=content, error=error)
+    return render_template("index.html", url=url, content=content, error=error, version=APP_VERSION)
 
 
 def run() -> None:
