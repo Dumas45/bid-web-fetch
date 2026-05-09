@@ -122,6 +122,30 @@ cat > "$LAUNCHER" <<EOF
 
 _APP="$APP_NAME"
 _VENV="$VENV_DIR"
+_APP_DIR="$APP_DIR"
+_BIN_DIR="$BIN_DIR"
+_COMMAND="$COMMAND"
+
+if [[ "\${1:-}" == "--uninstall" ]]; then
+    echo "+-----------------------------------------+"
+    echo "|       bid-web-fetch  uninstaller        |"
+    echo "+-----------------------------------------+"
+    echo ""
+    if [[ -L "\$_BIN_DIR/\$_COMMAND" ]]; then
+        rm "\$_BIN_DIR/\$_COMMAND"
+        echo "[ok] Removed \$_BIN_DIR/\$_COMMAND"
+    fi
+    if [[ -d "\$_APP_DIR" ]]; then
+        rm -rf "\$_APP_DIR"
+        echo "[ok] Removed \$_APP_DIR"
+    fi
+    echo ""
+    echo "Uninstall complete."
+    echo "You may also remove the PATH line added to your shell profile:"
+    echo '  export PATH="\$HOME/.local/bin:\$PATH"'
+    echo ""
+    exit 0
+fi
 
 if command -v uv &>/dev/null; then
     uv pip install --quiet --upgrade --python "\$_VENV/bin/python" \
@@ -150,6 +174,10 @@ if [[ ":$ORIGINAL_PATH:" != *":$BIN_DIR:"* ]]; then
         if [[ -f "$profile" ]]; then
             printf '\n# Added by bid-web-fetch installer\n%s\n' "$export_line" >> "$profile"
             echo "[ok] Added ~/.local/bin to PATH in $profile"
+        else
+            echo "[warn] Profile file $profile not found - could not add ~/.local/bin to PATH automatically."
+            echo "       Add this line to your shell profile manually:"
+            echo "         $export_line"
         fi
     }
 
