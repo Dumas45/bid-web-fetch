@@ -9,6 +9,7 @@ COMMAND="bid-fetch"
 APP_DIR="$HOME/.bid-web-fetch"
 VENV_DIR="$APP_DIR/venv"
 BIN_DIR="$HOME/.local/bin"
+ORIGINAL_PATH="$PATH"
 
 # Detect available downloader
 if command -v curl &>/dev/null; then
@@ -112,14 +113,15 @@ fi
 npm install --prefix "$PKG_DIR"
 echo "[ok] npm packages installed"
 
-# -- 7. Create launcher script in ~/.local/bin ---------------------------------
-mkdir -p "$BIN_DIR"
-cat > "$BIN_DIR/$COMMAND" <<EOF
+# -- 7. Write launcher into app dir and symlink into ~/.local/bin --------------
+LAUNCHER="$APP_DIR/bin/$COMMAND"
+mkdir -p "$APP_DIR/bin"
+cat > "$LAUNCHER" <<EOF
 #!/usr/bin/env bash
 # bid-fetch launcher - auto-updates before starting
 
-_VENV="$VENV_DIR"
 _APP="$APP_NAME"
+_VENV="$VENV_DIR"
 
 if command -v uv &>/dev/null; then
     uv pip install --quiet --upgrade --python "\$_VENV/bin/python" \
@@ -127,35 +129,39 @@ if command -v uv &>/dev/null; then
         --extra-index-url "https://pypi.org/simple/" "\$_APP" 2>/dev/null || true
 fi
 
-exec "$VENV_DIR/bin/$COMMAND" "\$@"
+exec "\$_VENV/bin/$COMMAND" "\$@"
 EOF
-chmod +x "$BIN_DIR/$COMMAND"
-echo "[ok] Launcher created at ${BIN_DIR}/${COMMAND}"
+chmod +x "$LAUNCHER"
+mkdir -p "$BIN_DIR"
+ln -sf "$LAUNCHER" "$BIN_DIR/$COMMAND"
+echo "[ok] Launcher created at ${LAUNCHER}"
+echo "[ok] Symlinked to ${BIN_DIR}/${COMMAND}"
 
 # -- 8. Persist ~/.local/bin to the user's shell profile -----------------------
-export_line='export PATH="$HOME/.local/bin:$PATH"'
+# Only needed if BIN_DIR was not on PATH before this script modified it
+if [[ ":$ORIGINAL_PATH:" != *":$BIN_DIR:"* ]]; then
+    export_line='export PATH="$HOME/.local/bin:$PATH"'
 
-add_to_profile() {
-    local profile="$1"
-    # Match both literal '$HOME/.local/bin' and the expanded path
-    if [[ -f "$profile" ]] && grep -qF '.local/bin' "$profile"; then
-        return  # already present
-    fi
-    if [[ -f "$profile" ]]; then
-        printf '\n# Added by bid-web-fetch installer\n%s\n' "$export_line" >> "$profile"
-        echo "[ok] Added ~/.local/bin to PATH in $profile"
-    fi
-}
+    add_to_profile() {
+        local profile="$1"
+        if [[ -f "$profile" ]] && grep -qF '.local/bin' "$profile"; then
+            return  # already present
+        fi
+        if [[ -f "$profile" ]]; then
+            printf '\n# Added by bid-web-fetch installer\n%s\n' "$export_line" >> "$profile"
+            echo "[ok] Added ~/.local/bin to PATH in $profile"
+        fi
+    }
 
-# Detect current shell
-CURRENT_SHELL="$(basename "${SHELL:-bash}")"
-case "$CURRENT_SHELL" in
-    zsh)  add_to_profile "$HOME/.zshrc"
-          add_to_profile "$HOME/.zprofile" ;;
-    bash) add_to_profile "$HOME/.bashrc"
-          add_to_profile "$HOME/.bash_profile" ;;
-    *)    add_to_profile "$HOME/.profile" ;;
-esac
+    CURRENT_SHELL="$(basename "${SHELL:-bash}")"
+    case "$CURRENT_SHELL" in
+        zsh)  add_to_profile "$HOME/.zshrc"
+              add_to_profile "$HOME/.zprofile" ;;
+        bash) add_to_profile "$HOME/.bashrc"
+              add_to_profile "$HOME/.bash_profile" ;;
+        *)    add_to_profile "$HOME/.profile" ;;
+    esac
+fi
 
 # -- 9. Done -------------------------------------------------------------------
 echo ""
