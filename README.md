@@ -1,5 +1,19 @@
 # bid-web-fetch
 
+A simple demo Python application designed to demonstrate a simple installation and launch method for distributing Python applications that uses locally installed npm packages lile MCP server.
+
+Installation:
+```bash
+curl -fsSL https://github.com/Dumas45/bid-web-fetch/raw/refs/heads/master/install.sh | bash
+```
+
+Run:
+```
+bid-fetch
+```
+
+## Application
+
 A minimal Flask web app that fetches any URL as plain text using the
 [mcp-fetch-server](https://www.npmjs.com/package/mcp-fetch-server) Node.js MCP server as the
 underlying fetch engine.
