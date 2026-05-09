@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ── bid-web-fetch installer ────────────────────────────────────────────────────
+# -- bid-web-fetch installer ----------------------------------------------------
 # Usage:  curl -fsSL https://github.com/Dumas45/bid-web-fetch/raw/refs/heads/master/install.sh | bash
 
 APP_NAME="bid-web-fetch"
@@ -29,12 +29,12 @@ download() {
     fi
 }
 
-echo "┌─────────────────────────────────────────┐"
-echo "│        bid-web-fetch  installer         │"
-echo "└─────────────────────────────────────────┘"
+echo "+-----------------------------------------+"
+echo "|        bid-web-fetch  installer         |"
+echo "+-----------------------------------------+"
 echo ""
 
-# ── 1. Check npm ───────────────────────────────────────────────────────────────
+# -- 1. Check npm ---------------------------------------------------------------
 if ! command -v npm &>/dev/null; then
     echo "ERROR: npm is not installed or not on your PATH." >&2
     echo "" >&2
@@ -43,12 +43,12 @@ if ! command -v npm &>/dev/null; then
     echo "" >&2
     exit 1
 fi
-echo "✔  npm $(npm --version) found"
+echo "[ok] npm $(npm --version) found"
 
-# ── 2. Check / install uv ──────────────────────────────────────────────────────
+# -- 2. Check / install uv ------------------------------------------------------
 if ! command -v uv &>/dev/null; then
     echo ""
-    echo "→  uv not found — installing uv (no sudo required)…"
+    echo "-->  uv not found - installing uv (no sudo required)..."
     if ! download https://astral.sh/uv/install.sh | sh; then
         echo "" >&2
         echo "ERROR: Failed to install uv automatically." >&2
@@ -59,40 +59,41 @@ if ! command -v uv &>/dev/null; then
     fi
     # The installer drops uv into ~/.local/bin; bring it into the current session
     export PATH="$BIN_DIR:$PATH"
-    echo "✔  uv installed: $(uv --version)"
+    echo "[ok] uv installed: $(uv --version)"
 else
-    echo "✔  uv $(uv --version) found"
+    echo "[ok] uv $(uv --version) found"
 fi
 
-# ── 3. Ensure ~/.local/bin is on PATH for this session ────────────────────────
+# -- 3. Ensure ~/.local/bin is on PATH for this session ------------------------
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
     export PATH="$BIN_DIR:$PATH"
 fi
 
-# ── 4. Create app directory and venv ──────────────────────────────────────────
+# -- 4. Create app directory and venv ------------------------------------------
 echo ""
-echo "→  Setting up ${APP_DIR}…"
+echo "-->  Setting up ${APP_DIR}..."
 mkdir -p "$APP_DIR"
 if [[ -d "$VENV_DIR" ]]; then
-    echo "✔  Virtualenv already exists at ${VENV_DIR} — skipping creation"
+    echo "[ok] Virtualenv already exists at ${VENV_DIR} - skipping creation"
 else
+    echo "-->  Ensuring Python 3.12 is available (may download if not cached)..."
     uv venv "$VENV_DIR" --python 3.12
-    echo "✔  Virtualenv created at ${VENV_DIR}"
+    echo "[ok] Virtualenv created at ${VENV_DIR}"
 fi
 
-# ── 5. Install bid-web-fetch into the venv from TestPyPI ─────────────────────
+# -- 5. Install bid-web-fetch into the venv from TestPyPI ---------------------
 echo ""
-echo "→  Installing ${APP_NAME} from TestPyPI…"
+echo "-->  Installing ${APP_NAME} from TestPyPI..."
 uv pip install \
     --python "$VENV_DIR/bin/python" \
     --index-url "https://test.pypi.org/simple/" \
     --extra-index-url "https://pypi.org/simple/" \
     "$APP_NAME"
-echo "✔  ${APP_NAME} installed"
+echo "[ok] ${APP_NAME} installed"
 
-# ── 6. Install npm packages inside the package directory ──────────────────────
+# -- 6. Install npm packages inside the package directory ----------------------
 echo ""
-echo "→  Installing npm packages for ${APP_NAME}…"
+echo "-->  Installing npm packages for ${APP_NAME}..."
 
 PKG_DIR=""
 while IFS= read -r candidate; do
@@ -109,18 +110,18 @@ if [[ -z "$PKG_DIR" ]]; then
 fi
 
 npm install --prefix "$PKG_DIR"
-echo "✔  npm packages installed"
+echo "[ok] npm packages installed"
 
-# ── 7. Create launcher script in ~/.local/bin ─────────────────────────────────
+# -- 7. Create launcher script in ~/.local/bin ---------------------------------
 mkdir -p "$BIN_DIR"
 cat > "$BIN_DIR/$COMMAND" <<EOF
 #!/usr/bin/env bash
 exec "$VENV_DIR/bin/$COMMAND" "\$@"
 EOF
 chmod +x "$BIN_DIR/$COMMAND"
-echo "✔  Launcher created at ${BIN_DIR}/${COMMAND}"
+echo "[ok] Launcher created at ${BIN_DIR}/${COMMAND}"
 
-# ── 8. Persist ~/.local/bin to the user's shell profile ───────────────────────
+# -- 8. Persist ~/.local/bin to the user's shell profile -----------------------
 export_line='export PATH="$HOME/.local/bin:$PATH"'
 
 add_to_profile() {
@@ -131,24 +132,25 @@ add_to_profile() {
     fi
     if [[ -f "$profile" ]]; then
         printf '\n# Added by bid-web-fetch installer\n%s\n' "$export_line" >> "$profile"
-        echo "✔  Added ~/.local/bin to PATH in $profile"
+        echo "[ok] Added ~/.local/bin to PATH in $profile"
     fi
 }
 
 # Detect current shell
 CURRENT_SHELL="$(basename "${SHELL:-bash}")"
 case "$CURRENT_SHELL" in
-    zsh)  add_to_profile "$HOME/.zshrc" ;;
+    zsh)  add_to_profile "$HOME/.zshrc"
+          add_to_profile "$HOME/.zprofile" ;;
     bash) add_to_profile "$HOME/.bashrc"
           add_to_profile "$HOME/.bash_profile" ;;
     *)    add_to_profile "$HOME/.profile" ;;
 esac
 
-# ── 9. Done ───────────────────────────────────────────────────────────────────
+# -- 9. Done -------------------------------------------------------------------
 echo ""
-echo "┌─────────────────────────────────────────┐"
-echo "│           Installation complete!         │"
-echo "└─────────────────────────────────────────┘"
+echo "*-----------------------------------------+"
+echo "|           Installation complete!        |"
+echo "+-----------------------------------------+"
 echo ""
 echo "  Run the app from any folder:"
 echo ""
