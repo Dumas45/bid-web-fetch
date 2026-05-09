@@ -2,7 +2,9 @@
 set -euo pipefail
 
 # -- bid-web-fetch installer ----------------------------------------------------
-# Usage:  curl -fsSL https://github.com/Dumas45/bid-web-fetch/raw/refs/heads/master/install.sh | bash
+# Install: curl -fsSL https://github.com/Dumas45/bid-web-fetch/raw/refs/heads/master/install.sh | bash
+# Run: bid-fetch
+# Uninstall: bid-fetch --uninstall
 
 APP_NAME="bid-web-fetch"
 COMMAND="bid-fetch"
@@ -96,21 +98,16 @@ echo "[ok] ${APP_NAME} installed"
 echo ""
 echo "-->  Installing npm packages for ${APP_NAME}..."
 
-PKG_DIR=""
-while IFS= read -r candidate; do
-    if [[ -f "$candidate/package.json" ]]; then
-        PKG_DIR="$candidate"
-        break
-    fi
-done < <(find "$VENV_DIR" -type d -name "bid_fetch_mcp" 2>/dev/null)
+# Ask Python exactly where the package is installed
+PKG_DIR=$("$VENV_DIR/bin/python" -c "import bid_fetch_mcp, os; print(os.path.dirname(bid_fetch_mcp.__file__))" 2>/dev/null || true)
 
-if [[ -z "$PKG_DIR" ]]; then
-    echo "ERROR: Could not locate bid_fetch_mcp package directory under ${VENV_DIR}" >&2
-    echo "       npm packages were NOT installed. Run 'npm install' manually in that directory." >&2
+if [[ -z "$PKG_DIR" || ! -f "$PKG_DIR/package.json" ]]; then
+    echo "ERROR: Could not locate bid_fetch_mcp package directory (or package.json is missing) under ${VENV_DIR}" >&2
+    echo "       npm packages were NOT installed." >&2
     exit 1
 fi
 
-npm install --prefix "$PKG_DIR"
+npm install --prefix "$PKG_DIR" --no-fund --no-audit --loglevel=error
 echo "[ok] npm packages installed"
 
 # -- 7. Write launcher into app dir and symlink into ~/.local/bin --------------
@@ -148,9 +145,29 @@ if [[ "\${1:-}" == "--uninstall" ]]; then
 fi
 
 if command -v uv &>/dev/null; then
+    _OLD_VER=\$(uv pip show --python "\$_VENV/bin/python" "\$_APP" 2>/dev/null \
+        | awk '/^Version:/{print \$2}' || true)
+    echo "\${_APP} current version: \${_OLD_VER:-unknown}"
+
     uv pip install --quiet --upgrade --python "\$_VENV/bin/python" \
         --index-url "https://test.pypi.org/simple/" \
         --extra-index-url "https://pypi.org/simple/" "\$_APP" 2>/dev/null || true
+
+    _NEW_VER=\$(uv pip show --python "\$_VENV/bin/python" "\$_APP" 2>/dev/null \
+        | awk '/^Version:/{print \$2}' || true)
+
+    if [[ "\$_OLD_VER" != "\$_NEW_VER" ]]; then
+        echo "\${_APP} updated to version: \${_NEW_VER:-unknown}"
+
+        # Re-run npm install in case npm deps changed after upgrade
+        _PKG_DIR=\$("\$_VENV/bin/python" -c \
+            "import bid_fetch_mcp, os; print(os.path.dirname(bid_fetch_mcp.__file__))" \
+            2>/dev/null || true)
+        if [[ -n "\$_PKG_DIR" && -f "\$_PKG_DIR/package.json" ]]; then
+            echo "Running npm install for updated package..."
+            npm install --prefix "\$_PKG_DIR" --no-fund --no-audit --loglevel=error 2>/dev/null || true
+        fi
+    fi
 fi
 
 exec "\$_VENV/bin/$COMMAND" "\$@"
@@ -174,10 +191,6 @@ if [[ ":$ORIGINAL_PATH:" != *":$BIN_DIR:"* ]]; then
         if [[ -f "$profile" ]]; then
             printf '\n# Added by bid-web-fetch installer\n%s\n' "$export_line" >> "$profile"
             echo "[ok] Added ~/.local/bin to PATH in $profile"
-        else
-            echo "[warn] Profile file $profile not found - could not add ~/.local/bin to PATH automatically."
-            echo "       Add this line to your shell profile manually:"
-            echo "         $export_line"
         fi
     }
 
