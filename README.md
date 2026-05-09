@@ -2,14 +2,19 @@
 
 A simple demo Python application designed to demonstrate a simple installation and launch method for distributing Python applications that uses locally installed npm packages lile MCP server.
 
-Installation:
+Install:
 ```bash
 curl -fsSL https://github.com/Dumas45/bid-web-fetch/raw/refs/heads/master/install.sh | bash
 ```
 
 Run:
-```
+```bash
 bid-fetch
+```
+
+Uninstall:
+```bash
+bid-fetch --uninstall
 ```
 
 ## Application
@@ -23,20 +28,14 @@ underlying fetch engine.
 - Python 3.12
 - [Node.js and npm](https://nodejs.org/) — required to run `mcp-fetch-server`
 
-## Installation
-
-```bash
-pip install bid-web-fetch
-```
-
-On first launch the app will run `npm install` inside its package directory to pull in
-`mcp-fetch-server`. Make sure `npm` is on your `PATH`.
-
 ## Usage
 
 ```bash
 bid-fetch
 ```
+
+On first launch the app will run `npm install` inside its package directory to pull in
+`mcp-fetch-server`. Make sure `npm` is on your `PATH`.
 
 Then open <http://127.0.0.1:5000>, paste any URL into the form, and click **Fetch**.
 The page content is returned as plain text.
