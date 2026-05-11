@@ -89,7 +89,7 @@ echo ""
 echo "-->  Installing ${APP_NAME} from TestPyPI..."
 uv pip install \
     --python "$VENV_DIR/bin/python" \
-    --upgrade \
+    --upgrade --refresh-package "$APP_NAME" \
     --index-url "https://test.pypi.org/simple/" \
     --extra-index-url "https://pypi.org/simple/" \
     "$APP_NAME"

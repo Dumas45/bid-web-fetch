@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bid-web-fetch"
-version = "0.2.2"
+version = "0.2.3"
 description = "A Flask web app that fetches web pages as plain text via an MCP client"
 readme = "README.md"
 license = "MIT"

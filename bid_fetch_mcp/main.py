@@ -13,7 +13,7 @@ PACKAGE_DIR = Path(__file__).parent
 NODE_MODULES = PACKAGE_DIR / "node_modules"
 MCP_BIN = NODE_MODULES / ".bin" / "mcp-fetch-server"
 
-APP_VERSION = '0.2.2'
+APP_VERSION = '0.2.3'
 
 try:
     nlp = spacy.load("en_core_web_sm")
