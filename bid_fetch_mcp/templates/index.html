@@ -11,7 +11,14 @@
     button { padding: 8px 18px; font-size: 1rem; cursor: pointer; border: none; background: #0066cc; color: #fff; border-radius: 4px; }
     button:hover { background: #0052a3; }
     .error { color: #cc0000; margin-top: 16px; }
-    pre { margin-top: 24px; white-space: pre-wrap; word-break: break-word; background: #f5f5f5; padding: 16px; border-radius: 4px; font-size: 0.9rem; line-height: 1.5; }
+    .svo-wrap { margin-top: 24px; }
+    .svo-empty { color: #666; font-style: italic; margin-top: 24px; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+    thead th { background: #0066cc; color: #fff; text-align: left; padding: 8px 12px; }
+    tbody tr:nth-child(odd) { background: #f5f5f5; }
+    tbody tr:nth-child(even) { background: #fff; }
+    tbody td { padding: 6px 12px; border-bottom: 1px solid #ddd; word-break: break-word; }
+    td.verb { font-style: italic; color: #444; }
     .version { font-size: 0.8rem; color: #666; margin-left: 8px; font-weight: normal; }
   </style>
 </head>
@@ -24,8 +31,27 @@
   {% if error %}
     <p class="error">Error: {{ error }}</p>
   {% endif %}
-  {% if content is not none %}
-    <pre>{{ content }}</pre>
+  {% if triplets is not none %}
+    {% if triplets %}
+      <div class="svo-wrap">
+        <table>
+          <thead>
+            <tr><th>Subject</th><th>Verb</th><th>Object</th></tr>
+          </thead>
+          <tbody>
+            {% for subj, verb, obj in triplets %}
+              <tr>
+                <td>{{ subj }}</td>
+                <td class="verb">{{ verb }}</td>
+                <td>{{ obj }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="svo-empty">No SVO triplets found.</p>
+    {% endif %}
   {% endif %}
 </body>
 </html>

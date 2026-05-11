@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bid-web-fetch"
-version = "0.1.2"
+version = "0.2.1"
 description = "A Flask web app that fetches web pages as plain text via an MCP client"
 readme = "README.md"
 license = "MIT"
@@ -25,7 +25,11 @@ classifiers = [
 dependencies = [
     "flask==3.0",
     "mcp==1.27.1",
+    "spacy==3.8.0",
 ]
+
+[project.optional-dependencies]
+nlp = ["en-core-web-sm"]
 
 [project.urls]
 Homepage = "https://github.com/dumas45/bid-web-fetch"
@@ -45,11 +49,16 @@ include = [
     "README.md",
     "LICENSE",
     "pyproject.toml",
+    "requirements.txt",
 ]
 
 [tool.hatch.build.targets.wheel.force-include]
 "bid_fetch_mcp/package.json" = "bid_fetch_mcp/package.json"
 "bid_fetch_mcp/templates/index.html" = "bid_fetch_mcp/templates/index.html"
+"requirements.txt" = "bid_fetch_mcp/requirements.txt"
+
+[tool.uv.sources]
+en_core_web_sm = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" }
 
 [[tool.uv.index]]
 name = "testpypi"

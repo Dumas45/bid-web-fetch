@@ -89,17 +89,29 @@ echo ""
 echo "-->  Installing ${APP_NAME} from TestPyPI..."
 uv pip install \
     --python "$VENV_DIR/bin/python" \
+    --upgrade \
     --index-url "https://test.pypi.org/simple/" \
     --extra-index-url "https://pypi.org/simple/" \
     "$APP_NAME"
 echo "[ok] ${APP_NAME} installed"
 
+# -- 5b. Install spaCy model from bundled requirements.txt -------------------
+echo ""
+echo "-->  Installing spaCy model..."
+# Ask Python exactly where the package is installed
+PKG_DIR=$("$VENV_DIR/bin/python" -c "import bid_fetch_mcp, os; print(os.path.dirname(bid_fetch_mcp.__file__))" 2>/dev/null || true)
+if [[ -n "$PKG_DIR" && -f "$PKG_DIR/requirements.txt" ]]; then
+    uv pip install \
+        --python "$VENV_DIR/bin/python" \
+        -r "$PKG_DIR/requirements.txt"
+    echo "[ok] spaCy model installed"
+else
+    echo "WARNING: requirements.txt not found in ${PKG_DIR:-<unknown>} - skipping model install" >&2
+fi
+
 # -- 6. Install npm packages inside the package directory ----------------------
 echo ""
 echo "-->  Installing npm packages for ${APP_NAME}..."
-
-# Ask Python exactly where the package is installed
-PKG_DIR=$("$VENV_DIR/bin/python" -c "import bid_fetch_mcp, os; print(os.path.dirname(bid_fetch_mcp.__file__))" 2>/dev/null || true)
 
 if [[ -z "$PKG_DIR" || ! -f "$PKG_DIR/package.json" ]]; then
     echo "ERROR: Could not locate bid_fetch_mcp package directory (or package.json is missing) under ${VENV_DIR}" >&2
